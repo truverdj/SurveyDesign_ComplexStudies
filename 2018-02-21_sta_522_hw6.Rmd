@@ -9,3 +9,15 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#### (1) Lohr, Chapter 6 Problem 4  
+
+
+
+#### (2) Lohr, Chapter 6 Problem 12
+
+Data from example 6.5 
+
+#### (3) Lohr, Chapter 6 Problem 13
+
+Data from example 6.5
+
