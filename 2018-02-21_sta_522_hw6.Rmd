@@ -1,0 +1,11 @@
+---
+title: "STA 522 HW6 (Multi-Stage Sampling)"
+author: "Daniel Truver"
+date: "2/21/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
