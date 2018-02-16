@@ -11,7 +11,36 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #### (1) Lohr, Chapter 6 Problem 4  
 
+We begin with showing $\hat{t}_\psi$ is unbiased. 
+$$
+E(\hat{t}_\psi) 
+= E\left( \frac{t_i}{\psi_i} \right) 
+= \sum_{i} \left( \frac{t_i}{\psi_i} \right) \psi_i
+= \sum_i t_i = t.
+$$
 
+```{r 1.lazyCalculation, include=FALSE}
+psi = c(7/16, rep(3/16,3))
+t = c(11,20,24,245)
+variance = 0
+for (i in 1:4){
+  variance = variance + (t[i]/psi[i] - 300)^2 * psi[i]
+}
+```
+
+The variacne of $\hat{t}_\psi$ is given by the following.
+$$
+\begin{aligned}
+Var(\hat{t}_\psi) 
+&= E\left[(\hat{t}_\psi - t)^2\right] \\
+&= \sum_i \left( \frac{t_i}{\psi_i} - t \right)^2 \psi_i \\
+&= (11(16/7) - 300)^2(7/16) + (20(16/3) - 300)^2(3/16)\\
+&\quad\quad + (24(16/3) - 300)^2(3/16) + (245(16/3) - 300)^2(3/16) \\
+&\approx 2.36 \times 10^5
+\end{aligned}
+$$
+
+This variance is much worse than the variance of the $\pi$ps estimator used in section 6.1, an estimator which is also unbiased. Therefore, we do not have a reason to use this distribution for $\psi_i$. Intuitively, it does not make sense to put so much weight on the smallest of the supermarkets. 
 
 #### (2) Lohr, Chapter 6 Problem 12
 
