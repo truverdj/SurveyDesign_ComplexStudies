@@ -44,7 +44,42 @@ This variance is much worse than the variance of the $\pi$ps estimator used in s
 
 #### (2) Lohr, Chapter 6 Problem 12
 
-Data from example 6.5 
+##### (a) Plotting Probability vs Number of Farms
+
+```{r readThatStatepopData, echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(survey)
+statepop = read.csv("statepop.csv")
+M_0 = 255077536
+statepop = statepop %>%
+  mutate(psi = popn/M_0) %>%
+  mutate(that = phys/psi)
+ggplot(data = statepop, aes(x = psi, y = numfarm)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  xlab("Number of Farms") +
+  ggtitle("Number of Farms in State vs Probability of Selection") +
+  theme_bw()
+```
+
+There appears to be some positive correlation here, but it is not strong. Considering how much leverage Los Angeles county has, we cannot say in good conscience that this sampling design will be efficient for estimating total number of farms.
+
+Does this make intuitive sense? Yes, the counties were sampled based on population size, but rural areas with plentiful farms tend to have lower population. 
+
+##### (b) Total Number of Farms in US
+
+```{r totalFarmsInUS}
+svy.farms = svydesign(ids = ~county, weights = statepop$psi, data = statepop)
+total.farms = svytotal(~numfarm, svy.farms)
+```
+
+```{r 2b.table, echo=FALSE}
+knitr::kable(data.frame(total.farms),
+             col.names = c("Total", "Standard Error"),
+             row.names = FALSE, digits = 0, 
+             caption = "Total Number of Farms in the U.S.")
+```
 
 #### (3) Lohr, Chapter 6 Problem 13
 
