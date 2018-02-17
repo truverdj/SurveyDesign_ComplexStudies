@@ -83,5 +83,21 @@ knitr::kable(data.frame(total.farms),
 
 #### (3) Lohr, Chapter 6 Problem 13
 
-Data from example 6.5
+##### (a) Plotting Veterans vs Probability 
+
+```{r plot.3a, echo=FALSE}
+plot(statepop$psi, statepop$veterans, pch = "*",
+     main = "Probability of Selecton vs Number of Veterans")
+```
+
+This correlation appears much stronger than the correlation between probability and number of farms. The $\pi$ps design will be efficient here.
+
+Does this fit with intution? The counties are sampled proportional to population. Greater population, more veterans. 
+
+##### (b) Total Number of Veterans 
+
+```{r totalVets}
+svy.vets = svydesign(ids = ~county, weights = statepop$psi, data = statepop)
+vets.total = svytotal(~veterans, svy.vets)
+```
 
