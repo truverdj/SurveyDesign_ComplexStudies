@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, dev = "pdf")
 ```
 
 #### (1) Lohr, Chapter 6 Problem 4  
@@ -46,7 +46,7 @@ This variance is much worse than the variance of the $\pi$ps estimator used in s
 
 ##### (a) Plotting Probability vs Number of Farms
 
-```{r readThatStatepopData, echo=FALSE, message=FALSE, warning=FALSE}
+```{r readThatStatepopData,echo=FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 library(survey)
@@ -54,11 +54,18 @@ statepop = read.csv("statepop.csv")
 M_0 = 255077536
 statepop = statepop %>%
   mutate(psi = popn/M_0) %>%
-  mutate(that = phys/psi)
+  mutate(that = phys/psi) %>%
+  mutate(countyunique = 1:nrow(.)) %>%
+  mutate(wts = 1/psi)
+  n = nrow(statepop)
+```
+
+
+```{r, out.width="300px", out.height="300px", echo=FALSE}
 ggplot(data = statepop, aes(x = psi, y = numfarm)) +
   geom_point() + 
   geom_smooth(method = "lm") +
-  xlab("Number of Farms") +
+  xlab("psi") +
   ggtitle("Number of Farms in State vs Probability of Selection") +
   theme_bw()
 ```
@@ -69,8 +76,10 @@ Does this make intuitive sense? Yes, the counties were sampled based on populati
 
 ##### (b) Total Number of Farms in US
 
+The survey package seems to have a problem dealing in true with-replacement sampling. 
+
 ```{r totalFarmsInUS}
-svy.farms = svydesign(ids = ~county, weights = statepop$psi, data = statepop)
+svy.farms = svydesign(ids = ~countyunique, probs = statepop$psi, data = statepop)
 total.farms = svytotal(~numfarm, svy.farms)
 ```
 
@@ -78,14 +87,42 @@ total.farms = svytotal(~numfarm, svy.farms)
 knitr::kable(data.frame(total.farms),
              col.names = c("Total", "Standard Error"),
              row.names = FALSE, digits = 0, 
-             caption = "Total Number of Farms in the U.S.")
+             caption = "Suspicious Estimate for Total Farms")
 ```
 
-#### (3) Lohr, Chapter 6 Problem 13
+189 million farms in the U.S seems fairly suspicious.
 
+If we use the Hansen-Hurwitz estimator for with-replacement sampling from Lohr (pg. 228), 
+$$
+\begin{aligned}
+& \hat{t}_\psi = \frac{1}{n}\sum_{i=1}^n \frac{t_i}{\psi_i} \\
+& \hat{Var}(\hat{t}_\psi) = \frac{1}{n}\frac{1}{n-1}\sum_{i=1}^n \left( \frac{t_i}{\psi_i} - \hat{t}_\psi \right)^2
+\end{aligned}
+$$
+we get the following results:
+
+```{r HansenEstimate}
+hansen.hurwitz = function(totals, psi, n){
+  estimate = 1/n * sum(totals/psi)
+  variance = (1/n)*1/(n-1) * sum( (totals/psi - estimate)^2 )
+  SE = sqrt(variance)
+  return(list("estimate" = estimate, "SE" = SE))
+}
+total.farms = hansen.hurwitz(statepop$numfarm, statepop$psi, n)
+```
+
+```{r HansenTable, echo=FALSE}
+knitr::kable(data.frame(total.farms), col.names = c("Total", "SE"),
+             caption = "Less Suspicious Estimate of Total Farms")
+```
+
+A brief google search confirms the suspicion. Until I have a moment to ask about the survey package functionality in with-replacement surveys, I will use the function constructed above. 
+
+\newpage
+#### (3) Lohr, Chapter 6 Problem 13
 ##### (a) Plotting Veterans vs Probability 
 
-```{r plot.3a, echo=FALSE}
+```{r plot.3a, echo=FALSE, out.width="300px", out.height="300px"}
 plot(statepop$psi, statepop$veterans, pch = "*",
      main = "Probability of Selecton vs Number of Veterans")
 ```
@@ -97,7 +134,25 @@ Does this fit with intution? The counties are sampled proportional to population
 ##### (b) Total Number of Veterans 
 
 ```{r totalVets}
-svy.vets = svydesign(ids = ~county, weights = statepop$psi, data = statepop)
-vets.total = svytotal(~veterans, svy.vets)
+vets.total = hansen.hurwitz(statepop$veterans, statepop$psi, n)
+```
+
+```{r 3b.table, echo=FALSE}
+knitr::kable(data.frame(vets.total), digits = 2, row.names = FALSE,
+             col.names = c("Total", "SE"),
+             caption = "Less Suspicious Estimate of Veterans in U.S.")
+```
+
+##### (c) Total Vietnam Veterans
+
+```{r totalVietnamVets}
+statepop = statepop %>%
+  mutate(vietVets = veterans * (percviet/100))
+vietVets.total = hansen.hurwitz(statepop$vietVets, statepop$psi, n)
+```  
+
+```{r 3c.table, echo=FALSE}
+knitr::kable(data.frame(vietVets.total), col.names = c("Total", "SE"),
+             caption = "Less Suspicious Estimate of Vietnam Veterans")
 ```
 
