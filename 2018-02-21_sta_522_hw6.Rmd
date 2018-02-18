@@ -173,14 +173,64 @@ confi.crime = confint(total.crime) %>% data.frame()
 confi.crime = cbind(total = total.crime[1], confi.crime)
 ```
 
-```{r 4a.presResults}
+```{r 4a.presResults, echo=FALSE}
 knitr::kable(confi.crime, col.names = c("Total", "2.5%", "97.5%"),
-             caption = "Total Crime Incidents Reported in U.S. (2000)",
+             caption = "Total Crime Incidents Reported (2000)",
              row.names = FALSE)
 ```  
 
 ##### (b) Total Number of Crimes by Race
 
 ```{r crimesByRace}
-
+ncvs = ncvs %>%
+  mutate(white.inc = 1*(race == 1) * numinc) %>%
+  mutate(black.inc = 1*(race == 2) * numinc) %>%
+  mutate(nativ.inc = 1*(race == 3) * numinc) %>%
+  mutate(asian.inc = 1*(race == 4) * numinc)
+svy.ncvs = svydesign(ids = ~ppsu,strata = ~pstrat, weights = ~pweight,data = ncvs)
+total.white.inc = svytotal(~white.inc, svy.ncvs)
+confi.white.inc = confint(total.white.inc) %>% cbind(total.white.inc[1], .)
+total.black.inc = svytotal(~black.inc, svy.ncvs)
+confi.black.inc = confint(total.black.inc) %>% cbind(total.black.inc[1], .)
+total.nativ.inc = svytotal(~nativ.inc, svy.ncvs)
+confi.nativ.inc = confint(total.nativ.inc) %>% cbind(total.nativ.inc[1], .)
+total.asian.inc = svytotal(~asian.inc, svy.ncvs)
+confi.asian.inc = confint(total.asian.inc) %>% cbind(total.asian.inc[1], .)
 ```
+
+```{r pres.4b, echo=FALSE}
+res.4b = rbind(confi.white.inc,
+               confi.black.inc,
+               confi.nativ.inc,
+               confi.asian.inc)
+rownames(res.4b) = c("White", "Black", "Native American", "Asia-Pacific")
+knitr::kable(res.4b, col.names = c("Total", "2.5%", "97.5%"),
+             caption = "Total Crimes Reported by Race (2000)", row.names = TRUE)
+```
+
+##### (c) Medical Expenses of Crime
+
+```{r medicalExpense}
+total.expense = svytotal(~medexp, svy.ncvs)
+confi.expense = confint(total.expense) %>% cbind(total.expense[1], .)
+```
+
+```{r pres.4c, echo=FALSE}
+knitr::kable(confi.expense, col.names = c("Total", "2.5%", "97.5%"),
+             caption = "Total Medical Expenses as a Result of Crime (2000)")
+```
+
+##### (d) Average Robberies per Person
+
+```{r avgRobberies}
+mean.rob = svymean(~robbery, svy.ncvs)
+conf.rob = confint(mean.rob) %>% cbind(mean.rob[1], .)
+```
+
+```{r res.4d, echo=FALSE}
+knitr::kable(conf.rob, col.names = c("Total", "2.5%", "97.5%"),
+             caption = "Average Robberies reported per Person (2000)",
+             row.names = FALSE, digits = 5)
+```
+
+#### (5) Return to NCVS with Incompetent Friend
