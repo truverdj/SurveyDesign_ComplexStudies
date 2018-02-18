@@ -156,3 +156,31 @@ knitr::kable(data.frame(vietVets.total), col.names = c("Total", "SE"),
              caption = "Less Suspicious Estimate of Vietnam Veterans")
 ```
 
+#### (4) National Crime Victimization Survey
+
+```{r readNCVS}
+ncvs = read.csv("ncvs2000.csv") %>%
+  mutate(individual = 1:nrow(.)) %>%
+  mutate(ppsu = 10*pstrat + ppsu)
+svy.ncvs = svydesign(ids = ~ppsu,strata = ~pstrat, weights = ~pweight,data = ncvs)
+```
+
+##### (a) Total Crime in US
+
+```{r 4a.totalCrime}
+total.crime = svytotal(~numinc, svy.ncvs)
+confi.crime = confint(total.crime) %>% data.frame()
+confi.crime = cbind(total = total.crime[1], confi.crime)
+```
+
+```{r 4a.presResults}
+knitr::kable(confi.crime, col.names = c("Total", "2.5%", "97.5%"),
+             caption = "Total Crime Incidents Reported in U.S. (2000)",
+             row.names = FALSE)
+```  
+
+##### (b) Total Number of Crimes by Race
+
+```{r crimesByRace}
+
+```
