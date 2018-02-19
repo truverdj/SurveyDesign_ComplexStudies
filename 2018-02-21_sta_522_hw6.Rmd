@@ -57,7 +57,7 @@ statepop = statepop %>%
   mutate(that = phys/psi) %>%
   mutate(countyunique = 1:nrow(.)) %>%
   mutate(wts = 1/psi)
-  n = nrow(statepop)
+n = nrow(statepop)
 ```
 
 
@@ -234,3 +234,32 @@ knitr::kable(conf.rob, col.names = c("Total", "2.5%", "97.5%"),
 ```
 
 #### (5) Return to NCVS with Incompetent Friend
+
+First, we will explore what the results of our friend's method would be.
+
+```{r friendMethod}
+n = nrow(ncvs)
+avg_friend = mean(ncvs$robbery)
+SE_friend = sqrt(sum( (ncvs$robbery - avg_friend)^2 )/n)
+noDesign = data.frame(avg_friend, SE_friend)
+withDesign = data.frame(mean.rob) %>% unname()
+```
+
+```{r 5ComparisonTable, echo=FALSE}
+knitr::kable(cbind(noDesign, withDesign), 
+             col.names = c("Friend's AVG", "Friend's SE", "HT-AVG", "HT-SE"),
+             row.names = FALSE)
+```
+
+Let $\tilde{y}$ denote our friend's estimate of the average robberies per person. 
+
+We first note the the variance of $\tilde{y}$ is much higher than the variance of the Horvitz-Thompson Estimator. Immediately, this makes us suspicious. We want accuracy in our estimate, especially if we inted to craft policy or interventions based on this data. 
+
+Also, this estimate is biased. 
+$$
+E(\tilde{y}) 
+= E\left(\frac{1}{m}\sum_{i=1}^m y_i \right) 
+= \frac{1}{m} \sum_{i = 1}^{M_0} y_i \psi_i
+$$
+
+A biased estimator with high variance isn't of much use to use when we have an unbiased estimator with lower variance.
